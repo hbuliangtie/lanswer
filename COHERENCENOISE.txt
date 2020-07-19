@@ -1,0 +1,90 @@
+clear
+clc
+x(1)=rand(1);
+y(1)=rand(1);
+u(1)=rand(1);
+v(1)=rand(1);
+a=1.4;
+%  B=0.1;%non-identical systems
+B=0.3;%identical systems
+
+% and now we begin the iteration (4096 iterations):
+E=0.6;
+for i=1:2999
+    x(i+1)=1.4-x(i)^2+0.3*u(i);
+    u(i+1)=x(i);
+    y(i+1)=1.4-(E*x(i)+(1-E)*y(i))*y(i)+B*v(i);
+    v(i+1)=y(i);    
+end
+
+
+
+
+Fs = 1000;
+NFFT = 512;
+n = 0:1/Fs:1;
+window2 = hamming(500);
+noverlap = 250;%Êý¾ÝÖØµþ
+
+[Pxx1,f1]=pwelch(x,window2,noverlap,NFFT,Fs);
+[Pxx2,f2]=pwelch(y,window2,noverlap,NFFT,Fs);
+PXX1= 10*log10(Pxx1);
+PXX2= 10*log10(Pxx2);
+
+figure()
+title('Coherence')
+subplot(4,1,1)
+plot(f1,PXX1),hold on
+plot(f2,PXX2)
+h1=patch([f1(46),f1(46),f1(57),f1(57)],[-50, 0,0,-50],[.8 .8 .8]);
+set(h1,'edgealpha',0,'facealpha',0.5) ;
+h2=patch([f1(205),f1(205),f1(226),f1(226)],[-50, 0,0,-50],[.8 .8 .8]);
+set(h2,'edgealpha',0,'facealpha',0.5) ;
+
+legend('X','Y (E=0.6)')
+
+ylabel('Power(dB)');
+
+subplot(4,1,2)
+[Cxy,F] = mscohere(x,y,hamming(256),noverlap,256,Fs);
+plot(F,Cxy),hold on
+plot([0 1000/2],[CriticalThres CriticalThres],'r--')
+ylabel('Coherence');
+
+alpha=0.05;
+segmentNo=12;
+CriticalThres=1-alpha^(1/(segmentNo-1));  
+ plot([0 1000/2],[CriticalThres CriticalThres],'r--')
+ h1=patch([NF(23),NF(23),NF(29),NF(29)],[0, 1,1,0],[.8 .8 .8]);
+set(h1,'edgealpha',0,'facealpha',0.5) ;
+h2=patch([NF(103),NF(103),NF(113),NF(113)],[0, 1,1,0],[.8 .8 .8]);
+set(h2,'edgealpha',0,'facealpha',0.5) ;
+
+subplot(4,1,3)
+ SNR=10;
+ NX1= awgn(x,SNR,'measured');
+ NY1 = awgn(y,SNR,'measured');
+[NCxy,NF] = mscohere(NX1,NY1,hamming(256),noverlap,256,Fs);
+plot(NF,NCxy),hold on
+plot([0 1000/2],[CriticalThres CriticalThres],'r--')
+% h=fill(NF(40:50),[0 1 1 1 1 1 1 1 1 1 1],'r') ;
+h1=patch([NF(23),NF(23),NF(29),NF(29)],[0, 1,1,0],[.8 .8 .8]);
+set(h1,'edgealpha',0,'facealpha',0.5) ;
+h2=patch([NF(103),NF(103),NF(113),NF(113)],[0, 1,1,0],[.8 .8 .8]);
+set(h2,'edgealpha',0,'facealpha',0.5) ;
+% xlabel('Frequency');
+ylabel('Coherence');
+
+ subplot(4,1,4)
+ SNR=10;
+ NX1= awgn(x,SNR,'measured');
+ NY1 = awgn(y,SNR,'measured');
+[NCxy,NF] = mscohere(NX1,NY1,hamming(256),noverlap,256,Fs);
+plot(NF,NCxy),hold on
+plot([0 1000/2],[CriticalThres CriticalThres],'r--')
+h1=patch([NF(23),NF(23),NF(29),NF(29)],[0, 1,1,0],[.8 .8 .8]);
+set(h1,'edgealpha',0,'facealpha',0.5) ;
+h2=patch([NF(103),NF(103),NF(113),NF(113)],[0, 1,1,0],[.8 .8 .8]);
+set(h2,'edgealpha',0,'facealpha',0.5) ;
+xlabel('Frequency(Hz)');
+ylabel('Coherence');
